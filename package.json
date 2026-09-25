@@ -19,9 +19,55 @@
     "verify:demo": "node scripts/run-electron.mjs scripts/verify-demo.mjs",
     "verify:pixels": "node scripts/run-electron.mjs scripts/verify-karaoke-pixels.mjs",
     "capture:peak": "node scripts/run-electron.mjs scripts/capture-peak.mjs",
-    "patch:player": "node scripts/patch-player.mjs"
+    "patch:player": "node scripts/patch-player.mjs",
+    "build:win": "electron-builder --win --x64",
+    "build:portable": "electron-builder --win portable --x64",
+    "build:nsis": "electron-builder --win nsis --x64"
   },
   "devDependencies": {
-    "electron": "33.4.11"
+    "electron": "33.4.11",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.harmonia.desktoplyrics",
+    "productName": "HarmoniaDesktopLyrics",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "Harmonia-DesktopLyrics-${version}-portable.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Harmonia 桌面歌词",
+      "artifactName": "Harmonia-DesktopLyrics-Setup-${version}.${ext}"
+    }
   }
 }
