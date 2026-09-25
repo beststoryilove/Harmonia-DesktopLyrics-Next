@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Harmonia 桌面歌词 · TTML 能力演示</title>
+<link rel="stylesheet" href="demo.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ── 左侧：控制与调试 ─────────────────────────── -->
+  <aside class="side">
+    <h1>桌面歌词 · TTML 演示</h1>
+    <p class="hint">
+      复用与桌面端<strong>完全相同</strong>的解析器（<code>src/core/ttml.js</code>）、
+      调度器（<code>src/core/scheduler.js</code>）与渲染器（<code>src/renderer/karaoke.js</code>）。
+    </p>
+
+    <section class="block">
+      <label class="label" for="sampleSelect">示例歌词</label>
+      <select id="sampleSelect"></select>
+      <p class="note" id="sampleNote"></p>
+    </section>
+
+    <section class="block">
+      <label class="label" for="ttmlInput">TTML 源码（可直接编辑，实时重解析）</label>
+      <textarea id="ttmlInput" spellcheck="false"></textarea>
+      <div class="btn-row">
+        <button id="btnApply" class="btn is-primary">重新解析</button>
+        <button id="btnLoadFile" class="btn">载入 .ttml 文件</button>
+        <button id="btnCopy" class="btn">复制</button>
+        <input type="file" id="fileInput" accept=".ttml,.xml,text/xml" hidden>
+      </div>
+    </section>
+
+    <section class="block">
+      <label class="label">播放控制</label>
+      <div class="btn-row">
+        <button id="btnPlay" class="btn is-primary">▶ 播放</button>
+        <button id="btnReset" class="btn">⟲ 回到开头</button>
+      </div>
+      <input type="range" id="seek" min="0" max="1000" value="0" step="1">
+      <div class="time-row">
+        <span id="timeNow">0:00.0</span>
+        <span id="timeTotal">0:00.0</span>
+      </div>
+    </section>
+
+    <section class="block">
+      <label class="label">解析统计</label>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="block">
+      <label class="label">当前活跃行（验证重叠时间轴）</label>
+      <div class="active-list" id="activeList"></div>
+    </section>
+
+    <section class="block" id="warnBlock" hidden>
+      <label class="label">解析警告</label>
+      <ul class="warnings" id="warnings"></ul>
+    </section>
+  </aside>
+
+  <!-- ── 右侧：歌词渲染预览（与桌面端同款面板）──────── -->
+  <main class="stage">
+    <div class="stage-frame">
+      <div class="preview-window" id="previewWindow">
+        <!-- 顶栏与底栏刻意与桌面端保持一致：只留品牌名 / 歌曲信息。
+             状态文字、徽标、控制按钮、进度条、时间均已移除。 -->
+        <header class="p-titlebar">
+          <span class="p-brand">Harmonia</span>
+          <span class="p-spacer"></span>
+        </header>
+
+        <div class="panel" id="panel">
+          <div class="bg-slot" data-slot="0"><span class="bg-inner"></span><span class="bg-trans"></span></div>
+          <div class="bg-slot" data-slot="1"><span class="bg-inner"></span><span class="bg-trans"></span></div>
+          <!-- 与桌面端一致：只保留主行 + 翻译；声部标签与上下句已移除 -->
+          <div class="main-wrap">
+            <span class="main-inner"></span>
+          </div>
+          <div class="main-trans"></div>
+        </div>
+
+        <footer class="p-controls">
+          <span class="p-info" id="pInfo">—</span>
+        </footer>
+      </div>
+
+      <p class="stage-caption">
+        上方为桌面歌词窗口的实际布局（与桌面端同为「顶栏 + 歌词 + 歌曲信息」三段）；
+        窗口本身透明置顶，此处用棋盘底模拟桌面背景。
+        播放控制与进度信息不在窗口内显示，改由托盘菜单与播放器自身提供。
+      </p>
+    </div>
+  </main>
+</div>
+
+<script type="module" src="demo.js"></script>
+</body>
+</html>

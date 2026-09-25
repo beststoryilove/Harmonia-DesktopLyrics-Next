@@ -1,0 +1,304 @@
+/**
+ * 桌面歌词窗口样式。
+ *
+ * 设计目标：浮在桌面/视频之上仍然可读，同时不遮挡过多画面。
+ * 因此采用「透明窗口 + 局部毛玻璃底 + 强文字投影」而非整块不透明背景。
+ */
+
+:root {
+  --fg: #ffffff;
+  --fg-rgb: 255, 255, 255;
+  --bg-veil: rgba(10, 10, 14, .42);
+  --panel-bg: rgba(12, 12, 18, .34);
+  --stroke: rgba(255, 255, 255, .10);
+  --agent-accent: #ffffff;
+  --agent-glow: transparent;
+  --slot-accent: #ffffff;
+  --shadow: 0 2px 10px rgba(0, 0, 0, .55), 0 0 2px rgba(0, 0, 0, .7);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei',
+          'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--fg);
+  user-select: none;
+  -webkit-user-select: none;
+  display: flex;
+  flex-direction: column;
+  /* 拖动窗口靠标题栏，主体区域保持可交互（按钮/选中） */
+}
+
+/* ── 顶栏（拖动区） ─────────────────────────────── */
+
+.titlebar {
+  -webkit-app-region: drag;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  font-size: 11px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border-bottom: 1px solid var(--stroke);
+  border-radius: 12px 12px 0 0;
+  opacity: .55;
+  transition: opacity .22s ease;
+}
+
+/* 悬停时顶栏变清晰，平时淡出以免干扰 */
+body:hover .titlebar { opacity: 1; }
+
+.titlebar .brand { font-weight: 700; letter-spacing: .3px; }
+.titlebar .spacer { flex: 1; }
+
+.win-buttons { -webkit-app-region: no-drag; display: flex; gap: 4px; }
+
+.win-btn {
+  -webkit-app-region: no-drag;
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; line-height: 1;
+  color: var(--fg);
+  background: rgba(var(--fg-rgb), .10);
+  border: 1px solid var(--stroke);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .15s ease, transform .1s ease;
+}
+.win-btn:hover { background: rgba(var(--fg-rgb), .22); }
+.win-btn:active { transform: scale(.92); }
+.win-btn.is-active { background: rgba(255, 214, 10, .3); border-color: rgba(255, 214, 10, .6); }
+.win-btn.is-danger:hover { background: rgba(255, 69, 58, .7); }
+
+/* ── 歌词面板 ───────────────────────────────────── */
+
+.panel {
+  flex: 1 1 auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 18px 2px;
+  overflow: hidden;
+  background: var(--panel-bg);
+  backdrop-filter: blur(20px) saturate(1.35);
+  -webkit-backdrop-filter: blur(20px) saturate(1.35);
+}
+
+/* 背景人声槽位：收起时不占高度，有内容时平滑展开。
+ *
+ * 为什么不能用 `display: none` 切换
+ * ──────────────────────────────
+ * `display` 是**离散属性，不可过渡**。若收起态写 `display: none`、展开态写
+ * `display: flex`，元素会在同一帧内被插入渲染树并以最终状态绘制 ——
+ * `opacity` / `max-height` 上声明的 transition 完全不会播放，
+ * 表现就是「背景行突然蹦出来」。
+ *
+ * 因此这里让槽位**始终留在渲染树中**（`display: flex` 常驻），
+ * 收起态靠 `max-height: 0` + `opacity: 0` 实现，两者都是可插值的属性，
+ * 过渡才能真正生效。
+ *
+ * `transform` 轻微上移再归位，让出现有方向感，比单纯淡入更自然。
+ * `--slot-index` 由 JS 写入，用于多条背景行依次出现（错开节奏）。
+ */
+.bg-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(-6px);
+  /* 收起态不占额外间距：抵消父级 gap，避免空槽位把主行推偏 */
+  margin-bottom: -2px;
+  transition:
+    opacity .34s ease,
+    max-height .34s cubic-bezier(.22, .61, .36, 1),
+    transform .34s cubic-bezier(.22, .61, .36, 1),
+    margin-bottom .34s ease;
+  /* 多条背景行错开出现，避免同时弹出 */
+  transition-delay: calc(var(--slot-index, 0) * 70ms);
+  will-change: opacity, transform, max-height;
+}
+
+.bg-slot.is-on {
+  max-height: 46px;
+  opacity: .82;
+  transform: translateY(0);
+  margin-bottom: 0;
+}
+
+.bg-inner {
+  display: inline-block;
+  white-space: pre;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--slot-accent);
+  text-shadow: var(--shadow);
+}
+
+/* ── 副行类型差异化 ───────────────────────────────
+ *
+ * 三种副行承载的信息重要性不同，若用同一套样式会误导观众：
+ *   duet    —— 对唱声部：另一名歌手在唱，属于主体内容
+ *   overlap —— 与主行重叠的普通行（轮唱/卡农）：同一段落两句并行演唱，
+ *              同样是主体内容，**不应**被弱化成"和声"观感
+ *   bg      —— 背景人声（x-bg）：明确标记为次要的衬词
+ *
+ * 因此：对唱与轮唱句用接近主行的字号与不透明度；背景人声保持弱化。
+ */
+.bg-slot[data-slot-kind='duet'] .bg-inner {
+  font-size: 16px;
+  font-weight: 700;
+}
+.bg-slot[data-slot-kind='duet'] { opacity: .9; }
+
+.bg-slot[data-slot-kind='overlap'] .bg-inner {
+  font-size: 16px;
+  font-weight: 700;
+  /* 轮唱句与主行是并列关系，用略低的不透明度形成层次而非主次 */
+  color: rgba(var(--fg-rgb), .92);
+}
+.bg-slot[data-slot-kind='overlap'] { opacity: .95; }
+
+/* 背景人声：保持原来的弱化处理（font-size / opacity 由 .bg-slot 基样式给出） */
+.bg-slot[data-slot-kind='bg'] .bg-inner {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: .9;
+}
+
+.bg-trans {
+  font-size: 10px;
+  opacity: .6;
+  text-shadow: var(--shadow);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.bg-trans:empty { display: none; }
+
+/* 上一句 / 下一句：已按要求移除（元素不再存在，样式一并删除）。
+   屏幕上只保留当前正在唱的内容，避免上下句分散注意力。 */
+
+.main-wrap {
+  position: relative;
+  text-align: center;
+  overflow: hidden;
+  padding: 2px 0;
+  min-height: 34px;
+}
+
+/* 声部标签（"v1" / "v2"）：已按要求移除。
+   元素不再存在于 HTML 中；保留这条注释是为了说明此处曾有的样式，
+   若日后需要恢复声部标识，可在此重新添加 `.agent-label` 规则。 */
+
+.main-inner {
+  display: inline-block;
+  white-space: pre;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  /* 滚动由 JS 写 transform，这里只做平滑过渡 */
+  transition: transform .28s cubic-bezier(.25, .8, .25, 1);
+  will-change: transform;
+  text-shadow: var(--shadow);
+}
+
+/* 逐字填充：底色为半透明前景，::after 按 --p 宽度覆盖实色 */
+.karaoke-word {
+  position: relative;
+  display: inline-block;
+  white-space: pre;
+  color: rgba(var(--fg-rgb), .38);
+  transition: color .2s ease;
+}
+.karaoke-word::after {
+  content: attr(data-t);
+  position: absolute;
+  left: 0; top: 0;
+  width: var(--p, 0%);
+  overflow: hidden;
+  white-space: pre;
+  color: var(--agent-accent);
+  pointer-events: none;
+}
+
+/* 对唱的光晕与左右偏移已按要求移除 —— 所有主行统一白字居中，
+   不因演唱者不同而改变外观。`data-role='duet'` 仍由 JS 写入（供调试/扩展），
+   但不再有对应样式。 */
+
+/* 背景人声作为主行时（无正常行活跃），弱化显示 */
+.panel[data-role='bg'] .main-inner { font-size: 20px; opacity: .72; }
+
+.main-trans {
+  display: none;
+  font-size: 13px;
+  opacity: .62;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: var(--shadow);
+  transition: opacity .25s ease;
+}
+.main-trans.is-on { display: block; }
+
+/* ── 底部信息条 ─────────────────────────────────── */
+
+/* 控制按钮 / 进度条 / 时间已移除，这里只剩歌曲信息一行。
+   保持与顶栏一致的淡出行为，避免常驻抢占注意力。 */
+.controls {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 7px;
+  font-size: 11px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border-top: 1px solid var(--stroke);
+  border-radius: 0 0 12px 12px;
+  opacity: .5;
+  transition: opacity .22s ease;
+}
+body:hover .controls { opacity: 1; }
+
+.controls .spacer { flex: 1; }
+
+.song-info {
+  /* 不再有按钮/进度条占位，信息可以占满整行 */
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: .8;
+  text-align: center;
+}
+
+/* ── 模式微调 ───────────────────────────────────── */
+
+/* 未连接：整体压低存在感 */
+body.mode-idle .panel { opacity: .55; }
+body.mode-idle .controls { opacity: .35; }
+
+/* 暂停：主行轻微降透明 */
+body.mode-paused .main-inner { opacity: .82; }
+
+/* 拖动时禁止文本选中残留 */
+.titlebar:active { cursor: grabbing; }

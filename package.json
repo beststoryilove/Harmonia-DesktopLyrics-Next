@@ -1,0 +1,27 @@
+{
+  "name": "harmonia-desktop-lyrics-next",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Harmonia 桌面歌词下一代：WebSocket 传输 + 完整 TTML（多声部 / 背景人声 / 重叠时间轴）",
+  "author": "Harmonia Music Player",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/main/main.js",
+  "engines": {
+    "node": ">=21"
+  },
+  "scripts": {
+    "start": "node scripts/run-electron.mjs .",
+    "test": "node --test \"tests/*.test.js\"",
+    "demo": "node scripts/serve-demo.mjs",
+    "verify:player": "node scripts/verify-player-integration.mjs",
+    "verify:smoke": "node scripts/smoke-electron.mjs",
+    "verify:demo": "node scripts/run-electron.mjs scripts/verify-demo.mjs",
+    "verify:pixels": "node scripts/run-electron.mjs scripts/verify-karaoke-pixels.mjs",
+    "capture:peak": "node scripts/run-electron.mjs scripts/capture-peak.mjs",
+    "patch:player": "node scripts/patch-player.mjs"
+  },
+  "devDependencies": {
+    "electron": "33.4.11"
+  }
+}

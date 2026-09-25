@@ -1,0 +1,9 @@
+# 依赖（可选：本机若已有 Electron 可不安装）
+node_modules/
+
+# 验证脚本产出的截图
+scripts/out/
+
+# 日志与临时文件
+*.log
+*.tmp

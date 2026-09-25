@@ -1,0 +1,408 @@
+/**
+ * 离线演示页样式。
+ *
+ * 这里的 `.panel / .bg-slot / .main-inner / .karaoke-word` 等规则
+ * 与 `src/renderer/lyrics.css` 保持一致，这样演示页看到的就是桌面端的真实效果。
+ * 差异仅在于：演示页需要一个不透明容器来模拟桌面背景（棋盘格）。
+ */
+
+:root {
+  --fg: #ffffff;
+  --fg-rgb: 255, 255, 255;
+  --stroke: rgba(255, 255, 255, .12);
+  --agent-accent: #ffffff;
+  --agent-glow: transparent;
+  --slot-accent: #ffffff;
+  --shadow: 0 2px 10px rgba(0, 0, 0, .55), 0 0 2px rgba(0, 0, 0, .7);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei',
+          'PingFang SC', 'Hiragino Sans', 'Noto Sans CJK SC', sans-serif;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: var(--font);
+  background: #0b0b0f;
+  color: #e8e8ee;
+  overflow: hidden;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  height: 100vh;
+}
+
+/* ── 左侧控制栏 ─────────────────────────────────── */
+
+.side {
+  overflow-y: auto;
+  padding: 18px 16px 40px;
+  background: #121218;
+  border-right: 1px solid #23232c;
+}
+
+.side h1 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+
+.hint {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #8b8b98;
+  margin-bottom: 16px;
+}
+.hint code {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: #1d1d26;
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: #b9b9c6;
+}
+
+.block { margin-bottom: 18px; }
+
+.label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9a9aa8;
+  margin-bottom: 6px;
+  letter-spacing: .2px;
+}
+
+.note { font-size: 10px; color: #6f6f7d; margin-top: 5px; line-height: 1.5; }
+
+select, textarea, input[type='range'] {
+  width: 100%;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+select {
+  padding: 7px 8px;
+  background: #1c1c24;
+  color: #e8e8ee;
+  border: 1px solid #2c2c38;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+textarea {
+  height: 220px;
+  padding: 9px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.55;
+  background: #16161d;
+  color: #cfcfe0;
+  border: 1px solid #2c2c38;
+  border-radius: 7px;
+  resize: vertical;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: #2c2c38;
+  border-radius: 999px;
+  margin: 10px 0 6px;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: #ff2d55;
+  cursor: pointer;
+}
+
+.btn-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+
+.btn {
+  padding: 6px 11px;
+  font-family: inherit;
+  font-size: 11px;
+  color: #d8d8e4;
+  background: #22222c;
+  border: 1px solid #32323f;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background .15s ease, transform .1s ease;
+}
+.btn:hover { background: #2c2c38; }
+.btn:active { transform: scale(.97); }
+.btn.is-primary { background: #ff2d55; border-color: #ff2d55; color: #fff; font-weight: 600; }
+.btn.is-primary:hover { background: #ff4568; }
+
+.time-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #7c7c8a;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 8px;
+  font-size: 11px;
+}
+.stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: #181820;
+  border-radius: 6px;
+  border: 1px solid #23232c;
+}
+.stat b { color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat span { color: #7c7c8a; }
+
+.active-list { font-size: 11px; display: flex; flex-direction: column; gap: 4px; }
+
+.active-item {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 5px 8px;
+  background: #181820;
+  border: 1px solid #23232c;
+  border-radius: 6px;
+  border-left-width: 3px;
+}
+.active-item.is-fg { border-left-color: #30d158; }
+.active-item.is-bg { border-left-color: #ffd60a; }
+.active-item.is-idle { border-left-color: #3a3a46; opacity: .45; }
+.active-item .tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #26262f;
+  color: #9a9aa8;
+  white-space: nowrap;
+}
+.active-item .txt {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #d0d0dc;
+}
+.active-item .tm {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: #6f6f7d;
+  white-space: nowrap;
+}
+
+.warnings { list-style: none; font-size: 10.5px; color: #e8c26a; line-height: 1.6; }
+.warnings li { padding-left: 12px; position: relative; }
+.warnings li::before { content: '!'; position: absolute; left: 0; opacity: .7; }
+
+/* ── 右侧预览台 ─────────────────────────────────── */
+
+.stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  background:
+    radial-gradient(900px 500px at 50% 40%, #1a1a24 0%, #0b0b0f 70%);
+}
+
+.stage-frame { width: 100%; max-width: 960px; }
+
+/* 棋盘格模拟「桌面透出」效果 */
+.preview-window {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .6);
+  background-color: #202028;
+  background-image:
+    linear-gradient(45deg, #2a2a34 25%, transparent 25%, transparent 75%, #2a2a34 75%),
+    linear-gradient(45deg, #2a2a34 25%, transparent 25%, transparent 75%, #2a2a34 75%);
+  background-size: 22px 22px;
+  background-position: 0 0, 11px 11px;
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+}
+
+.p-titlebar, .p-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  font-size: 11px;
+  background: rgba(12, 12, 18, .34);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+.p-titlebar { border-bottom: 1px solid var(--stroke); }
+.p-controls { border-top: 1px solid var(--stroke); margin-top: auto; }
+.p-brand { font-weight: 700; }
+.p-spacer { flex: 1; }
+/* 状态文字 / 徽标 / 时间已随桌面端移除；歌曲信息占满整行并居中 */
+.p-info {
+  flex: 1;
+  opacity: .8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+/* ── 歌词面板：与 src/renderer/lyrics.css 保持一致 ── */
+
+.panel {
+  flex: 1 1 auto;
+  color: var(--fg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 14px 22px;
+  overflow: hidden;
+  background: rgba(12, 12, 18, .30);
+  backdrop-filter: blur(20px) saturate(1.35);
+  -webkit-backdrop-filter: blur(20px) saturate(1.35);
+  min-height: 170px;
+}
+
+/* 背景人声槽位：与 src/renderer/lyrics.css 保持一致的过渡实现。
+   不能用 `display: none` 切换 —— display 是离散属性、不可过渡，
+   会导致背景行「突然蹦出」。改为常驻渲染树 + max-height/opacity/transform 插值。 */
+.bg-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(-6px);
+  margin-bottom: -2px;
+  transition:
+    opacity .34s ease,
+    max-height .34s cubic-bezier(.22, .61, .36, 1),
+    transform .34s cubic-bezier(.22, .61, .36, 1),
+    margin-bottom .34s ease;
+  transition-delay: calc(var(--slot-index, 0) * 70ms);
+  will-change: opacity, transform, max-height;
+}
+.bg-slot.is-on {
+  max-height: 46px;
+  opacity: .82;
+  transform: translateY(0);
+  margin-bottom: 0;
+}
+
+.bg-inner {
+  display: inline-block;
+  white-space: pre;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--slot-accent);
+  text-shadow: var(--shadow);
+}
+
+/* 副行类型差异化（与 src/renderer/lyrics.css 同步）
+ *   duet    —— 对唱声部，主体内容
+ *   overlap —— 与主行重叠的普通行（轮唱），同为主体内容，不弱化
+ *   bg      —— 背景人声，保持次要观感 */
+.bg-slot[data-slot-kind='duet'] .bg-inner { font-size: 16px; font-weight: 700; }
+.bg-slot[data-slot-kind='duet'] { opacity: .9; }
+.bg-slot[data-slot-kind='overlap'] .bg-inner {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(var(--fg-rgb), .92);
+}
+.bg-slot[data-slot-kind='overlap'] { opacity: .95; }
+.bg-slot[data-slot-kind='bg'] .bg-inner { font-size: 14px; font-weight: 600; opacity: .9; }
+.bg-trans {
+  font-size: 10px;
+  opacity: .6;
+  text-shadow: var(--shadow);
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bg-trans:empty { display: none; }
+
+/* 上一句 / 下一句：已按要求移除（与 src/renderer/lyrics.css 同步） */
+
+.main-wrap {
+  position: relative;
+  text-align: center;
+  overflow: hidden;
+  padding: 2px 0;
+  min-height: 36px;
+}
+
+.main-inner {
+  display: inline-block;
+  white-space: pre;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  transition: transform .28s cubic-bezier(.25, .8, .25, 1);
+  will-change: transform;
+  text-shadow: var(--shadow);
+}
+
+.karaoke-word {
+  position: relative;
+  display: inline-block;
+  white-space: pre;
+  color: rgba(var(--fg-rgb), .38);
+  transition: color .2s ease;
+}
+.karaoke-word::after {
+  content: attr(data-t);
+  position: absolute;
+  left: 0; top: 0;
+  width: var(--p, 0%);
+  overflow: hidden;
+  white-space: pre;
+  color: var(--agent-accent);
+  pointer-events: none;
+}
+
+/* 对唱光晕已移除（与桌面端同步）：所有主行统一白字 */
+.panel[data-role='bg'] .main-inner { font-size: 20px; opacity: .72; }
+.panel[data-role='empty'] .main-inner { font-size: 15px; opacity: .5; font-weight: 400; }
+
+.main-trans {
+  display: none;
+  font-size: 13px;
+  opacity: .62;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: var(--shadow);
+}
+.main-trans.is-on { display: block; }
+
+.stage-caption {
+  margin-top: 14px;
+  font-size: 11px;
+  color: #6f6f7d;
+  text-align: center;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .side { max-height: 46vh; }
+}

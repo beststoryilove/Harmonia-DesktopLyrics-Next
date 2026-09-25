@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+<title>Harmonia 桌面歌词</title>
+<link rel="stylesheet" href="lyrics.css">
+</head>
+<body class="mode-idle">
+  <!-- 顶部拖动条：无边框窗口靠它移动。
+       刻意保持极简：只留品牌名与退出按钮。
+       状态文字 / 徽标 / 鼠标穿透按钮 / 隐藏按钮已按要求移除 —— 这些属于
+       调试与辅助信息，常驻显示会干扰歌词本身的观感。
+       播放控制改由双击标题栏切换（见 lyrics.js），窗口隐藏与鼠标穿透
+       仍可从托盘菜单操作。 -->
+  <header class="titlebar" id="titlebar">
+    <span class="brand">Harmonia</span>
+    <span class="spacer"></span>
+    <span class="win-buttons">
+      <button class="win-btn is-danger" id="btnQuit" title="退出" aria-label="退出">✕</button>
+    </span>
+  </header>
+
+  <main class="panel" id="panel">
+    <!-- 背景人声槽位（最多 2 条，与主行并行显示） -->
+    <div class="bg-slot" data-slot="0">
+      <span class="bg-inner"></span>
+      <span class="bg-trans"></span>
+    </div>
+    <div class="bg-slot" data-slot="1">
+      <span class="bg-inner"></span>
+      <span class="bg-trans"></span>
+    </div>
+
+    <!-- 主行区域：只保留当前正在唱的内容（主行 + 翻译）。
+         声部标签、上一句、下一句均已按要求移除 —— 屏幕上只呈现当下所唱。 -->
+    <div class="main-wrap">
+      <span class="main-inner"></span>
+    </div>
+    <div class="main-trans"></div>
+  </main>
+
+  <!-- 底栏：仅保留歌曲信息。
+       控制按钮 / 进度条 / 时间已按要求移除（进度与播放状态对歌词阅读无增益，
+       且常驻显示会与歌词争夺注意力）。 -->
+  <footer class="controls" id="controls">
+    <span class="song-info" id="songInfo">未连接</span>
+  </footer>
+
+  <script type="module" src="lyrics.js"></script>
+</body>
+</html>
